@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace BayesTheoremCalculator
 {
@@ -57,6 +58,20 @@ namespace BayesTheoremCalculator
             catch (Exception ex)
             {
                 MessageBox.Show("Error: Invalid input. Please enter valid numeric values.");
+            }
+        }
+        private void NumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            // Allow only numeric input (digits and decimal point)
+            if (!char.IsDigit(e.Text, 0) && e.Text != ".")
+            {
+                e.Handled = true; // Prevent non-numeric input
+            }
+
+            // Prevent multiple decimal points
+            if (e.Text == "." && ((TextBox)sender).Text.Contains("."))
+            {
+                e.Handled = true; // Prevent multiple decimal points
             }
         }
 
