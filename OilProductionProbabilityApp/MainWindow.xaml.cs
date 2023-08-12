@@ -3,16 +3,44 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Data;
+using System.Data.SQLite;
+using System.Data.Common;
+using System.Linq;
+using System.Reflection;
 
 namespace BayesTheoremCalculator
 {
     public partial class MainWindow : Window
     {
+        public string filePath;
+        private SQLiteConnection dbConnection;
+
         public MainWindow()
         {
             InitializeComponent();
-        }
+            // Create or open the SQLite database file
+            string dbFilePath = "OutputDatabase.db";
+            dbConnection = new SQLiteConnection($"Data Source={dbFilePath};Version=3;");
+            dbConnection.Open();
 
+            // Create a table if it doesn't exist
+            string createTableQuery = @"
+            CREATE TABLE IF NOT EXISTS OutputData (
+                Id INTEGER PRIMARY KEY,
+                Timestamp TEXT,
+                StateOfNature TEXT,
+                OriginalRisk REAL,
+                ConditionalProbability REAL,
+                JointProbabilities REAL,
+                RevisedRisk REAL
+            );
+        ";
+            using (SQLiteCommand createTableCommand = new SQLiteCommand(createTableQuery, dbConnection))
+            {
+                createTableCommand.ExecuteNonQuery();
+            }
+        }
         private void CalculateButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -42,24 +70,37 @@ namespace BayesTheoremCalculator
                 OutputDataGrid.ItemsSource = dataTable.DefaultView;
                 OutputDataGrid.Visibility = Visibility.Visible;
                 this.Height = 600;
-                // Store the output in a file
-                string filePath = "output.txt";
-                using (StreamWriter writer = new StreamWriter(filePath))
+             
+                // Insert records into the SQLite database
+                using (SQLiteCommand insertCommand = new SQLiteCommand("INSERT INTO OutputData (Timestamp, StateOfNature, OriginalRisk, ConditionalProbability, JointProbabilities, RevisedRisk) VALUES (@Timestamp, @StateOfNature, @OriginalRisk, @ConditionalProbability, @JointProbabilities, @RevisedRisk);", dbConnection))
                 {
-                    foreach (System.Data.DataRow row in dataTable.Rows)
-                    {
-                        string line = string.Join("\t", row.ItemArray);
-                        writer.WriteLine(line);
-                    }
+                    insertCommand.Parameters.AddWithValue("@Timestamp", DateTime.Now.ToString());
+                    insertCommand.Parameters.AddWithValue("@StateOfNature", "i=1: no reservoir");
+                    insertCommand.Parameters.AddWithValue("@OriginalRisk", pE1);
+                    insertCommand.Parameters.AddWithValue("@ConditionalProbability", pBGivenE1);
+                    insertCommand.Parameters.AddWithValue("@JointProbabilities", pBGivenE1 * pE1);
+                    insertCommand.Parameters.AddWithValue("@RevisedRisk", pE1GivenBNot);
+                    insertCommand.ExecuteNonQuery();
+                    //ExportToCSV("output.csv");
                 }
 
-                MessageBox.Show("Calculation completed. Output stored in 'output.txt'.");
+                string csvFilePath = ExportToCSV("output.csv");
+
+                var outputDialog = new OutputDialog();
+                outputDialog.SetMessageAndFilePath("Calculation completed. Results are updated in Database and stored in 'output.csv' file.", csvFilePath);
+                outputDialog.ShowDialog();
+
+
+
+
+                //MessageBox.Show("Calculation completed. Results are updated in Database and stored in 'output.cvs file'.");
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error: Invalid input. Please enter valid numeric values.");
             }
         }
+
         private void NumericTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             // Allow only numeric input (digits and decimal point)
@@ -74,6 +115,42 @@ namespace BayesTheoremCalculator
                 e.Handled = true; // Prevent multiple decimal points
             }
         }
+        //exporting database to cvs function
+        private string ExportToCSV(string fileName)
+        {
+            string folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string filePath = Path.Combine(folderPath, fileName);
+
+            using (SQLiteCommand selectCommand = new SQLiteCommand("SELECT * FROM OutputData;", dbConnection))
+            using (SQLiteDataReader reader = selectCommand.ExecuteReader())
+            using (StreamWriter writer = new StreamWriter(filePath))
+            {
+                // Write the header
+                string header = string.Join(",", reader.GetColumnSchema().Select(col => col.ColumnName));
+                writer.WriteLine(header);
+
+                // Write the data
+                while (reader.Read())
+                {
+                    string[] values = new string[reader.FieldCount];
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        values[i] = reader[i].ToString();
+                    }
+                    string line = string.Join(",", values);
+                    writer.WriteLine(line);
+                }
+                return filePath;
+            }
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            dbConnection.Close();
+        }
+
 
 
 
