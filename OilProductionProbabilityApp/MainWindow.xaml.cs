@@ -87,7 +87,7 @@ namespace BayesTheoremCalculator
                 string csvFilePath = ExportToCSV("output.csv");
 
                 var outputDialog = new OutputDialog();
-                outputDialog.SetMessageAndFilePath("Calculation completed. Results are updated in Database and stored in 'output.csv' file.", csvFilePath);
+                outputDialog.SetMessageAndFilePath("Calculations Completed, Results are updated in Database and stored in 'output.csv' file.", csvFilePath);
                 outputDialog.ShowDialog();
 
 
