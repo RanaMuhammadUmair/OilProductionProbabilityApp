@@ -13,7 +13,7 @@ namespace BayesTheoremCalculator
 {
     public partial class MainWindow : Window
     {
-        public string filePath;
+
         private SQLiteConnection dbConnection;
 
         public MainWindow()
@@ -81,11 +81,10 @@ namespace BayesTheoremCalculator
                     insertCommand.Parameters.AddWithValue("@JointProbabilities", pBGivenE1 * pE1);
                     insertCommand.Parameters.AddWithValue("@RevisedRisk", pE1GivenBNot);
                     insertCommand.ExecuteNonQuery();
-                    //ExportToCSV("output.csv");
+     
                 }
-
+                // exporting to cvs file
                 string csvFilePath = ExportToCSV("output.csv");
-
                 var outputDialog = new OutputDialog();
                 outputDialog.SetMessageAndFilePath("Calculations Completed, Results are updated in Database and stored in 'output.csv' file.", csvFilePath);
                 outputDialog.ShowDialog();
@@ -97,7 +96,7 @@ namespace BayesTheoremCalculator
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: Invalid input. Please enter valid numeric values.");
+                MessageBox.Show("Problem in starting program, Contact to Adminstrator");
             }
         }
 
@@ -144,6 +143,7 @@ namespace BayesTheoremCalculator
             }
         }
 
+        //closing database
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
