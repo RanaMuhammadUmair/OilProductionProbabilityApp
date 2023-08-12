@@ -6,13 +6,13 @@
         <StackPanel Margin="25">
 
             <TextBlock Text="Calculating Probabilities when seismic interprets no channel" HorizontalAlignment="Center" FontSize="20" FontWeight="Bold" Margin="0 0 0 10" Background="#007ACC" Foreground="White" Padding="10"/>
-            <Label Content="Probability of E1:" FontSize="16"/>
+            <Label Content="Enter P(E1) = original estimate that channel will not be present:" FontSize="16"/>
             <TextBox Name="ProbabilityE1TextBox" Height="30" FontSize="16" />
-            <Label Content="Probability of E2:" FontSize="16" />
+            <Label Content="Enter P(E2) = original estimate that channel will be present" FontSize="16" />
             <TextBox Name="ProbabilityE2TextBox" Height="30" FontSize="16" />
-            <Label Content="Probability of B given E1:" FontSize="16" />
+            <Label Content="Enter P(B|E1) = probability that the seismic says there is a channel present when there is in fact not a channel present:" FontSize="16" />
             <TextBox Name="ProbabilityBGivenE1TextBox" Height="30" FontSize="16"/>
-            <Label Content="Probability of B given E2:" FontSize="16"/>
+            <Label Content="Enter P(B|E2) = probability that the seismic says there is a channel present when there is in fact a channel present:" FontSize="16"/>
             <TextBox Name="ProbabilityBGivenE2TextBox" Height="30" FontSize="16"/>
 
             <Button Content="Calculate and Generate Table" Click="CalculateButton_Click" Margin="0 13" Background="#4CAF50" Foreground="White" FontSize="16" Padding="10 8" Width="230"/>
